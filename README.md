@@ -75,7 +75,7 @@ Utils/
 "idle" | "listening" | "processing" | "error" | "clarification"
 ```
 
-**Simple diagram state flow**
+### Simple diagram state flow
 
 ```
 Idle
@@ -90,7 +90,7 @@ Idle
 ---
 
 
-**How to toggle scenarios**
+### How to toggle scenarios
 
 Edit the voiceApi construction in `app/index.tsx`:
 
@@ -104,7 +104,7 @@ Change `scenario` to one of: `"success" | "clarify" | "networkError" | "serverEr
 
 # 4) Audio File Lifecycle
 
-**Where files are written**
+### Where files are written
 
 * The code uses Expo file-system `Paths.cache`
 
@@ -116,21 +116,21 @@ Change `scenario` to one of: `"success" | "clarify" | "networkError" | "serverEr
 
   `playResponseAudio` uses `Asset.fromModule(require('../assets/audio/audiofile1.mp3'))` to load and play.
 
-**Save & recording flow**
+### Save & recording flow
 
 1. `stopRecording()` returns a recording `uri` (sometimes `content://` on Android).
 2. If `content://` (Android) → use the content URI directly.
 3. For file URIs → wait `FileSystem.getInfoAsync(uri)` until the file exists (with exponential backoff).
 4. Copy it to cache: `rec_<timestamp>.m4a` and return `{ uri: dest, mimeType: 'audio/m4a' }`.
 
-**Playback flow**
+### Playback flow
 
 * Loads module using `require('../assets/audio/...')`, wraps in `Asset.fromModule(module)`
 * Ensures the asset is downloaded via `asset.downloadAsync()` if needed
 * Creates sound via `Audio.Sound.createAsync(source)` and `sound.playAsync()`
 * Unloads the sound on finish (`sound.unloadAsync()` in `setOnPlaybackStatusUpdate`)
 
-**Cleanup**
+### Cleanup
 
 * `AudioService.cleanupTemp()` reads cache directory (`Paths.cache.uri` or `FileSystem.cacheDirectory`) and deletes any files matching `rec_...` prefix.
 * Called after successful processing in `index.tsx`

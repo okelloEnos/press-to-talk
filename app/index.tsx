@@ -24,7 +24,7 @@ import { ProcessVoiceInput } from "../types";
 
 // Initialize services
 const audioService = new AudioService();
-const voiceApi = new StubVoiceApi({ scenario: 'success', delayMs: 1500 });
+const voiceApi = new StubVoiceApi({ scenario: 'success', delayMs: 1000 });
 const scenarios: Scenario[] = ["success", "clarify", "networkError", "serverError"];
 
 
