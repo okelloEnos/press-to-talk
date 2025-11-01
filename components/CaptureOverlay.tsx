@@ -92,35 +92,42 @@ export default function CaptureOverlay({
     const micScale = pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] });
 
     return (
-        <Animated.View
-            style={[
-                styles.overlay,
-                { opacity, transform: [{ translateY }, { translateX }] },
-            ]}
-            accessibilityLiveRegion="polite"
-        //   accessibilityRole="status"
-        >
-            <View style={styles.rowRecord}>
-                <Text style={styles.live}>Listening</Text>
-                <Text style={styles.live}>{formatDuration(secs)}</Text>
-            </View>
-            <Spacer height={8} />
+        <>
+            <Animated.View
+                style={[
+                    styles.overlay,
+                    { opacity, transform: [{ translateY }, { translateX }] },
+                ]}
+                accessibilityLiveRegion="polite"
+            >
+                <View style={styles.rowRecord}>
+                    <>
+                        <Text style={styles.live}>Listening</Text>
+                        <Text style={styles.live}>{formatDuration(secs)}</Text>
+                    </>
+                </View>
+                <Spacer height={8} />
 
-            <View style={styles.micWrapper}>
-                <Animated.View style={[styles.ring, { transform: [{ scale: ringScale }], opacity: ringOpacity }]} />
-                <Animated.View style={{ transform: [{ scale: micScale }] }}>
-                    <Ionicons name="mic" size={20} color="#fff" />
-                </Animated.View>
-            </View>
+                <View style={styles.micWrapper}>
+                    <>
+                        <Animated.View style={[styles.ring, { transform: [{ scale: ringScale }], opacity: ringOpacity }]} />
+                        <Animated.View style={{ transform: [{ scale: micScale }] }}>
+                            <Ionicons name="mic" size={20} color="#fff" />
+                        </Animated.View>
+                    </>
+                </View>
 
-            <Spacer height={24} />
+                <Spacer height={24} />
 
-            <View style={styles.textCol}>
-                <Animated.Text style={[styles.sub, { opacity: hintOpacity, fontStyle: "italic" }]}>
-                    Slide right while holding to cancel the recording
-                </Animated.Text>
-            </View>
-        </Animated.View>
+                <View style={styles.textCol}>
+                    <>
+                        <Animated.Text style={[styles.sub, { opacity: hintOpacity, fontStyle: "italic" }]}>
+                            Slide right while holding to cancel the recording
+                        </Animated.Text>
+                    </>
+                </View>
+            </Animated.View>
+        </>
     );
 }
 
@@ -136,10 +143,6 @@ const styles = StyleSheet.create({
         zIndex: 20,
         elevation: 10,
     },
-    row: {
-        // flexDirection: "row",
-        // alignItems: "center",
-    },
     rowRecord: {
         flexDirection: "row",
         alignItems: "center",
@@ -153,7 +156,6 @@ const styles = StyleSheet.create({
         alignSelf: "center",
         justifyContent: "center",
         marginRight: 12,
-        // keep a fixed background for contrast
         backgroundColor: "transparent",
     },
     ring: {

@@ -54,41 +54,45 @@ export default function ErrorBanner({
     });
 
     return (
-        <Animated.View
-            style={[styles.container, { opacity, transform: [{ translateY }] }]}
-            accessibilityRole="alert"
-            accessibilityLiveRegion="polite"
-        >
-            {/* <Ionicons name="warning-outline" size={22} color="#fff" style={styles.icon} /> */}
-            <TouchableWithoutFeedback
-                onPress={onRetry}
+        <>
+            <Animated.View
+                style={[styles.container, { opacity, transform: [{ translateY }] }]}
+                accessibilityRole="alert"
+                accessibilityLiveRegion="polite"
             >
-                <Ionicons name="close-outline" size={22} color="#fff" style={styles.iconCancel} />
-            </TouchableWithoutFeedback>
-            <View >
-                <Text style={styles.title}>An Issue Occurred</Text>
-                <Text style={styles.message}>{message}</Text>
-                <Spacer height={16} />
-                {onRetry && (
-                    <Animated.View
-                        style={[
-                            styles.retryWrapper,
-                            { transform: [{ scale: pulseAnim }] },
-                        ]}
-                    >
-                        <TouchableOpacity
-                            style={styles.retryButton}
-                            onPress={onRetry}
-                            activeOpacity={0.8}
-                        >
-                            <Ionicons name="refresh" size={14} color="#fff" />
-                            <Text style={styles.retryText}>Retry</Text>
-                        </TouchableOpacity>
-                    </Animated.View>
-                )}
-                <Spacer height={8} />
-            </View>
-        </Animated.View>
+
+                <TouchableWithoutFeedback
+                    onPress={onRetry}
+                >
+                    <Ionicons name="close-outline" size={22} color="#fff" style={styles.iconCancel} />
+                </TouchableWithoutFeedback>
+                <View >
+                    <>
+                        <Text style={styles.title}>An Issue Occurred</Text>
+                        <Text style={styles.message}>{message}</Text>
+                        <Spacer height={16} />
+                        {onRetry && (
+                            <Animated.View
+                                style={[
+                                    styles.retryWrapper,
+                                    { transform: [{ scale: pulseAnim }] },
+                                ]}
+                            >
+                                <TouchableOpacity
+                                    style={styles.retryButton}
+                                    onPress={onRetry}
+                                    activeOpacity={0.8}
+                                >
+                                    <Ionicons name="refresh" size={14} color="#fff" />
+                                    <Text style={styles.retryText}>Retry</Text>
+                                </TouchableOpacity>
+                            </Animated.View>
+                        )}
+                        <Spacer height={8} />
+                    </>
+                </View>
+            </Animated.View>
+        </>
     );
 }
 

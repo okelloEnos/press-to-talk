@@ -132,5 +132,5 @@ Change `scenario` to one of: `"success" | "clarify" | "networkError" | "serverEr
 
 ### Cleanup
 
-* `AudioService.cleanupTemp()` reads cache directory (`Paths.cache.uri` or `FileSystem.cacheDirectory`) and deletes any files matching `rec_...` prefix.
+* `AudioService.cleanupTemp()` reads cache directory (`Paths.cache.uri`) and deletes any files matching `rec_...` prefix.
 * Called after successful processing in `index.tsx`

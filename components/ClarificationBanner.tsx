@@ -1,4 +1,3 @@
-// components/ClarificationBanner.tsx
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
@@ -27,28 +26,32 @@ export default function ClarificationBanner({ prompt }: Props) {
     });
 
     return (
-        <Animated.View
-            style={[
-                styles.container,
-                { opacity, transform: [{ translateY }] },
-            ]}
-            accessibilityRole="alert"
-            accessibilityLiveRegion="polite"
-        >
-            <Ionicons
-                name="help-circle-outline"
-                size={20}
-                color="#b45309"
-                style={styles.icon}
-            />
-            <View style={{ flex: 1 }}>
-                <Text style={styles.title}>Clarification needed</Text>
-                <Spacer height={4} />
-                <Text style={styles.message}>{prompt}</Text>
-                <Spacer height={8} />
-                <Text style={styles.hint}>Press and hold the button to respond</Text>
-            </View>
-        </Animated.View>
+        <>
+            <Animated.View
+                style={[
+                    styles.container,
+                    { opacity, transform: [{ translateY }] },
+                ]}
+                accessibilityRole="alert"
+                accessibilityLiveRegion="polite"
+            >
+                <Ionicons
+                    name="help-circle-outline"
+                    size={20}
+                    color="#b45309"
+                    style={styles.icon}
+                />
+                <View style={{ flex: 1 }}>
+                    <>
+                        <Text style={styles.title}>Clarification needed</Text>
+                        <Spacer height={4} />
+                        <Text style={styles.message}>{prompt}</Text>
+                        <Spacer height={8} />
+                        <Text style={styles.hint}>Press and hold the button to respond</Text>
+                    </>
+                </View>
+            </Animated.View>
+        </>
     );
 }
 

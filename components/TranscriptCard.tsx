@@ -8,12 +8,14 @@ type Props = {
 
 export default function TranscriptCard({ text }: Props) {
     return (
-        <View style={styles.card}>
-            <Ionicons name="chatbubble-ellipses-outline" size={18} color="#4a90e2"
-                style={{ alignSelf: "flex-end" }} />
+        <>
+            <View style={styles.card}>
+                <Ionicons name="chatbubble-ellipses-outline" size={18} color="#4a90e2"
+                    style={{ alignSelf: "flex-end" }} />
 
-            <Text style={styles.bodyText}>{text}</Text>
-        </View>
+                <Text style={styles.bodyText}>{text}</Text>
+            </View>
+        </>
     );
 }
 

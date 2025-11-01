@@ -127,39 +127,29 @@ export default function PTTButton({
         })
     ).current;
 
-    // animated styles
-    const translateX = panX;
-    const hintOpacity = panX.interpolate({
-        inputRange: [0, 10, threshold * 0.6],
-        outputRange: [1, 0.92, 0.45],
-        extrapolate: "clamp",
-    });
-
     return (
-        <View style={styles.wrapper}>
-            {/* hint above button (moves with panX for synced feel)
-            <Animated.View pointerEvents="none" style={[styles.hintContainer, { transform: [{ translateX }] }]}>
-                <Animated.Text style={[styles.hintText, { opacity: hintOpacity }]}>Slide right to cancel →</Animated.Text>
-            </Animated.View> */}
-
-            {/* the circular mic button */}
-            <Animated.View
-                {...panResponder.panHandlers}
-                accessibilityLabel="Press to talk"
-                accessibilityHint="Press to record. Slide right while holding to cancel."
-                accessible={true}
-                style={[styles.touchArea]}
-            >
-                <View style={styles.circleOuter}>
-                    <View style={styles.circleInner}>
-                        <Ionicons name="mic" size={28} color="#fff" />
-                    </View>
-                </View>
+        <>
+            <View style={styles.wrapper}>
+                <Animated.View
+                    {...panResponder.panHandlers}
+                    accessibilityLabel="Press to talk"
+                    accessibilityHint="Press to record. Slide right while holding to cancel."
+                    accessible={true}
+                    style={[styles.touchArea]}
+                >
+                    <>
+                        <View style={styles.circleOuter}>
+                            <View style={styles.circleInner}>
+                                <Ionicons name="mic" size={28} color="#fff" />
+                            </View>
+                        </View>
 
 
-                <Text style={[styles.label, disabled && styles.labelDisabled]}>{label}</Text>
-            </Animated.View>
-        </View>
+                        <Text style={[styles.label, disabled && styles.labelDisabled]}>{label}</Text>
+                    </>
+                </Animated.View>
+            </View>
+        </>
     );
 }
 

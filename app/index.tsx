@@ -1,3 +1,4 @@
+import AnimatedDots from "@/components/AnimatedDots";
 import { AudioService, useAudioRecorderService } from "@/services/AudioService";
 import { Scenario, StubVoiceApi } from "@/services/VoiceApi";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,9 +8,6 @@ import * as FileSystem from "expo-file-system";
 import React, { useEffect, useRef, useState } from "react";
 import { Alert, Animated, FlatList, Linking, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-// import { AnimatedDots } from "../components/AnimatedDots";
-import AnimatedDots from "@/components/AnimatedDots";
-// import ProcessingView from "@/components/ProcessingView";
 import { stubErrorMessage } from "../Utils/ErrorMessage";
 import CaptureOverlay from "../components/CaptureOverlay";
 import ClarificationBanner from "../components/ClarificationBanner";
@@ -19,11 +17,7 @@ import ScenarioCard from "../components/ScenarioCard";
 import Spacer from "../components/Spacer";
 import TranscriptCard from "../components/TranscriptCard";
 import { ProcessVoiceInput } from "../types";
-// import { AudioService, useAudioRecorderService } from './AudioService';
 
-
-// Initialize services
-const audioService = new AudioService();
 const voiceApi = new StubVoiceApi({ scenario: 'success', delayMs: 1000 });
 const scenarios: Scenario[] = ["success", "clarify", "networkError", "serverError"];
 
@@ -39,19 +33,14 @@ export default function Index() {
   const [cancelled, setCancelled] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
 
-  // for cancel swipe animation (shared between button and overlay if needed)
   const panXRef = useRef(new Animated.Value(0)).current;
-
-  // useEffect(() => {
-  //   voiceApi.setScenario(scenario);
-  //   audioService.cleanupTemp();
-  // }, [scenario]);
 
   const { startRecording, stopRecording, cancelRecording, isRecording } = useAudioRecorderService();
 
   useEffect(() => {
+
     voiceApi.setScenario(scenario);
-    // Setup on mount
+
     (async () => {
       const granted = await AudioService.requestPermission();
       if (granted) {
@@ -59,16 +48,7 @@ export default function Index() {
       }
     })();
 
-    // Cleanup temp files when scenario changes
-    // AudioService.cleanupTemp().catch(console.warn);
   }, [scenario]);
-
-  // Cleanup on component unmount
-  // useEffect(() => {
-  //   return () => {
-  //     AudioService.cleanupTemp().catch(console.warn);
-  //   };
-  // }, []);
 
   const startListening = async () => {
     // guard: don't allow overlapping recordings
@@ -106,7 +86,6 @@ export default function Index() {
       setListeningStart(Date.now());
       setUiState("listening");
     } catch (err: any) {
-      console.error("Recording error:", err);
 
       if (err.code === 'ERR_AUDIO_PERMISSIONS') {
         Alert.alert(
@@ -156,7 +135,6 @@ export default function Index() {
       // Now we know we have a recording, set to processing
       setUiState("processing");
 
-      console.log('Recording saved:', uri);
       const input: ProcessVoiceInput = {
         audioUri: uri,
         mimeType: 'audio/wav',
@@ -180,17 +158,12 @@ export default function Index() {
     } catch (err: any) {
       const errorCode = err["code"];
       if (errorCode === "ERR_AUDIO_PERMISSIONS") return;
-      console.log("Jackline ahero", errorCode);
       if (errorCode === undefined) {
-        // console.error("Processing  error okello:", err);
-
-        // setError(err.message || "Something went wrong. Please try again.");
         setError("Something unexpected went wrong. Please try again.");
         setUiState("error");
       }
       else {
         const customizedMessage = stubErrorMessage(errorCode);
-        // console.error("Processing error enos:", err);
         setError(customizedMessage);
         setUiState("error");
       }
@@ -203,13 +176,10 @@ export default function Index() {
     // user swiped right while holding
     setCancelled(true);
     try {
-      // await audioService.cancelRecording();
       await cancelRecording();
     } catch (err) {
-      console.warn("Cancel recording error:", err);
     } finally {
       setUiState("idle");
-      // small haptic or animation feedback could go here
     }
   };
 
@@ -221,17 +191,9 @@ export default function Index() {
         fileIndex === 1
           ? require("../assets/audio/audiofile1.mp3")
           : require("../assets/audio/audiofile2.mp3");
-      console.log(`[Audio] Module loaded:`, module);
 
       // 2. Create and download asset if needed
       const asset = Asset.fromModule(module);
-      console.log(`[Audio] Asset state:`, {
-        name: asset.name,
-        type: asset.type,
-        uri: asset.uri,
-        localUri: asset.localUri,
-        downloaded: asset.downloaded,
-      });
 
       // Always try to ensure the file exists, even if asset claims to be downloaded
       let fileExists = false;
@@ -239,7 +201,6 @@ export default function Index() {
         try {
           const info = await FileSystem.getInfoAsync(asset.localUri);
           fileExists = info.exists;
-          console.log('[Audio] Asset file exists:', fileExists);
         } catch (err) {
           console.warn('[Audio] Error checking file:', err);
         }
@@ -253,19 +214,16 @@ export default function Index() {
           asset.downloaded = false;
           asset.localUri = null;
           await asset.downloadAsync();
-          console.log('[Audio] Asset downloaded successfully');
 
           // Double check the file exists
           const info = await FileSystem.getInfoAsync(asset.localUri!);
           fileExists = info.exists;
-          console.log('[Audio] Download verified, file exists:', fileExists);
 
           if (!fileExists) {
             throw new Error('Downloaded asset file not found');
           }
         } catch (dErr) {
           console.warn("[Audio] Asset download failed:", dErr);
-          console.log('[Audio] Will try direct module require instead');
         }
       }
 
@@ -280,9 +238,8 @@ export default function Index() {
           console.log(`[Audio] File info for ${uri}:`, info);
 
           if (!info.exists) {
-            console.log('[Audio] File not found, falling back to module require');
             const { sound } = await Audio.Sound.createAsync(module);
-            await sound.setVolumeAsync(1.0); // Ensure volume is up
+            await sound.setVolumeAsync(1.0);
             const status = await sound.getStatusAsync();
             console.log('[Audio] Sound created from module, status:', status);
             await sound.playAsync();
@@ -295,37 +252,20 @@ export default function Index() {
 
       // 5. Create and play the sound
       const source = typeof uri === "string" ? { uri } : uri;
-      console.log('[Audio] Creating sound with source:', source);
 
       const { sound } = await Audio.Sound.createAsync(source, { shouldPlay: false });
       await sound.setVolumeAsync(1.0); // Ensure volume is up
       const status = await sound.getStatusAsync();
-      console.log('[Audio] Sound created, initial status:', status);
 
       await sound.playAsync();
-      console.log('[Audio] Playback started');
 
       // Clean up sound when done
       sound.setOnPlaybackStatusUpdate(async (status: any) => {
         if (status.didJustFinish) {
-          console.log('[Audio] Playback finished, unloading sound');
           await sound.unloadAsync();
         }
       });
     } catch (err) {
-      // force
-      // console.error("[Audio] Playback failed with error:", err);
-
-      // Try to get more error context
-      if (err instanceof Error) {
-        // force
-        // console.error("[Audio] Error details:", {
-        //   name: err.name,
-        //   message: err.message,
-        //   stack: err.stack,
-        // });
-      }
-
       // Alert user of failure
       Alert.alert(
         "Playback Failed",
@@ -341,95 +281,100 @@ export default function Index() {
 
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Press & Talk Demo</Text>
+          <Spacer height={16} />
 
-        <Text style={styles.title}>Press & Talk Demo</Text>
-        <Spacer height={16} />
+          <View style={styles.scenarioOverview}>
+            <>
+              <Spacer height={6} />
+              <Text style={styles.demoScenarioText}>Testing Scenario :</Text>
+              <Spacer height={8} />
+              <View style={styles.grid}>
+                <>
+                  {scenarios.map((scenarioInstance) => (
+                    <View key={scenarioInstance} style={styles.gridItem}>
 
-        <View style={styles.scenarioOverview}>
-          <Spacer height={6} />
-          <Text style={styles.demoScenarioText}>Testing Scenario :</Text>
-          <Spacer height={8} />
-          <View style={styles.grid}>
-            {scenarios.map((scenarioInstance) => (
-              <View key={scenarioInstance} style={styles.gridItem}>
-                <ScenarioCard
-                  value={scenarioInstance}
-                  selectedScenario={scenario}
-                  onPress={() => setScenario(scenarioInstance)}
-                />
+                      <ScenarioCard
+                        value={scenarioInstance}
+                        selectedScenario={scenario}
+                        onPress={() => setScenario(scenarioInstance)}
+                      />
+                    </View>
+                  ))}
+                </>
               </View>
-            ))}
+            </>
           </View>
+
+          <Spacer height={24} />
         </View>
 
-        <Spacer height={24} />
-      </View>
-
-      {uiState === "clarification" && prompt && (
-        <ClarificationBanner prompt={prompt || "Assistant requires clarification"} />
-      )}
+        {uiState === "clarification" && prompt && (
+          <ClarificationBanner prompt={prompt || "Assistant requires clarification"} />
+        )}
 
 
-      {uiState === "error" && (
-        <ErrorBanner
-          message={error || "Oops! Something unexpected happened. Please try again."}
-          onRetry={retryError}
-        />
-      )}
+        {uiState === "error" && (
+          <ErrorBanner
+            message={error || "Oops! Something unexpected happened. Please try again."}
+            onRetry={retryError}
+          />
+        )}
 
-      <>
-        {(transcripts.length > 0 || uiState === "processing") && <View style={styles.subTitleContainer}>
-          <Text style={styles.subTitle}>Recent transcripts</Text>
-          <Spacer height={4} />
-        </View>}
+        <>
+          {(transcripts.length > 0 || uiState === "processing") && <View style={styles.subTitleContainer}>
+            <Text style={styles.subTitle}>Recent transcripts</Text>
+            <Spacer height={4} />
+          </View>}
 
-        {uiState === "processing" && <Text style={styles.processingText}>
-          Thinking  <AnimatedDots />
-        </Text>}
+          {uiState === "processing" && <Text style={styles.processingText}>
+            Thinking  <AnimatedDots />
+          </Text>}
 
-        <FlatList
-          data={transcripts}
-          keyExtractor={(_, i) => i.toString()}
-          renderItem={({ item }) => <TranscriptCard text={item} />}
-          contentContainerStyle={
-            transcripts.length === 0 ? styles.emptyContainer : undefined
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyInner}>
-              <Ionicons name="mic-outline" size={48} color="#888" style={styles.icon} />
-              <Text style={styles.emptyTitle}>No transcripts available</Text>
-              <Text style={styles.emptyHint}>
-                Press the button below to start recording your first voice input.
-              </Text>
-            </View>
-          }
-        />
-      </>
+          <FlatList
+            data={transcripts}
+            keyExtractor={(_, i) => i.toString()}
+            renderItem={({ item }) => <TranscriptCard text={item} />}
+            contentContainerStyle={
+              transcripts.length === 0 ? styles.emptyContainer : undefined
+            }
+            ListEmptyComponent={
+              <>
+                <View style={styles.emptyInner}>
+                  <Ionicons name="mic-outline" size={48} color="#888" style={styles.icon} />
+                  <Text style={styles.emptyTitle}>No transcripts available</Text>
+                  <Text style={styles.emptyHint}>
+                    Press the button below to start recording your first voice input.
+                  </Text>
+                </View>
+              </>
+            }
+          />
+        </>
 
-      <PressButton
-        panX={panXRef}
-        onPressIn={startListening}
-        onPressOut={stopListening}
-        onSwipeCancel={handleSwipeCancel}
-        disabled={uiState === "processing" || isBusy}
-        label={
-          uiState === "listening" ? "Listening..." : "Press to Talk"
-        }
-      />
-
-      {/* LISTENING OVERLAY */}
-      {uiState === "listening" && (
-        <CaptureOverlay
-          startTs={listeningStart}
+        <PressButton
           panX={panXRef}
-          cancelThreshold={120}
+          onPressIn={startListening}
+          onPressOut={stopListening}
+          onSwipeCancel={handleSwipeCancel}
+          disabled={uiState === "processing" || isBusy}
+          label={uiState === "listening" ? "Listening..." : "Press to Talk"}
         />
-      )}
+
+        {uiState === "listening" && (
+          <CaptureOverlay
+            startTs={listeningStart}
+            panX={panXRef}
+            cancelThreshold={120}
+          />
+        )}
 
 
-    </SafeAreaView>
+      </SafeAreaView>
+    </>
   );
 }
 

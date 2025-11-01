@@ -5,7 +5,7 @@ type Props = {
     dotCount?: number;
     size?: number;
     color?: string;
-    speed?: number; // milliseconds for one cycle
+    speed?: number;
 };
 
 export default function AnimatedDots({
@@ -14,7 +14,6 @@ export default function AnimatedDots({
     color = "#33333353",
     speed = 900,
 }: Props) {
-    // one animated value that we stagger across dots using interpolation
     const anim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
