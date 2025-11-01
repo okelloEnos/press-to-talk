@@ -1,5 +1,5 @@
 # Press-to-Talk
-# 1) Prerequisites & run on Android emulator
+# 1) Prerequisites & Getting Started
 
 **Prereqs**
 
@@ -7,26 +7,19 @@
 * npm
 * Expo CLI
 * Android Studio
-* Emulator
+* Emulator(Android Virtual Device)
 
 ```bash
 npm install -g expo-cli
 ```
 
-* Android Studio + Android SDK + AVD (Android Virtual Device)
-
-  * Create an AVD (e.g., Pixel 4, API 33) via AVD Manager
-  * Ensure `adb` is on your PATH (Android Studio normally adds it)
-
 **Install & run**
 
 ```bash
-# clone + install
 git clone https://github.com/okelloEnos/press-to-talk.git
 cd press-to-talk
 npm install
 
-# start Expo dev server
 npx expo start
 ```
 
@@ -34,11 +27,6 @@ npx expo start
 
 * Start your AVD from Android Studio and wait for it to boot.
 * In the terminal where Expo is running press `a` → this will open the Expo app in the emulator.
-* OR (managed/bare / dev-client flows) run:
-
-```bash
-npx expo run:android
-```
 
 **Permissions**
 
@@ -47,8 +35,6 @@ npx expo run:android
 ---
 
 # 2) Architecture
-
-**Important files / folders (your repo)**
 
 ```
 app/
@@ -83,7 +69,7 @@ Utils/
 5. After successful processing, the app calls `AudioService.cleanupTemp()` to remove temporary recordings from cache.
 
 
-# 3) App states (list + transitions)
+# 3) App States & Toggling Scenarios
 
 ```ts
 "idle" | "listening" | "processing" | "error" | "clarification"
@@ -103,56 +89,48 @@ Idle
 
 ---
 
-# 4) How to toggle scenarios
+
+**How to toggle scenarios**
 
 Edit the voiceApi construction in `app/index.tsx`:
 
 ```ts
-// src/app/index.tsx (top)
-const voiceApi = new StubVoiceApi({ scenario: 'success', delayMs: 1500 });
+const voiceApi = new StubVoiceApi({ scenario: 'success', delayMs: 1000 });
 ```
 
 Change `scenario` to one of: `"success" | "clarify" | "networkError" | "serverError"`. Restart app to apply.
 
 ---
 
-# 5) Audio file lifecycle
+# 4) Audio File Lifecycle
 
-## Where files are written
+# Where files are written
 
 * The code uses Expo file-system `Paths.cache`
 
-* Example destination the service uses when copying:
+* Eg. the destination path :
 
   ```
   ${Paths.cache?.uri}/rec_<timestamp>.m4a
   ```
-* Bundled response audio assets live under:
 
-  ```
-  assets/audio/audiofile1.mp3
-  assets/audio/audiofile2.mp3
-  ```
+  `playResponseAudio` uses `Asset.fromModule(require('../assets/audio/audiofile1.mp3'))` to load and play.
 
-  `playResponseAudio` uses `Asset.fromModule(require('../assets/audio/audiofile1.mp3'))` to load/play.
-
-## Save-recording flow
+# Save & recording flow
 
 1. `stopRecording()` returns a recording `uri` (sometimes `content://` on Android).
 2. If `content://` (Android) → use the content URI directly.
 3. For file URIs → wait `FileSystem.getInfoAsync(uri)` until the file exists (with exponential backoff).
 4. Copy it to cache: `rec_<timestamp>.m4a` and return `{ uri: dest, mimeType: 'audio/m4a' }`.
 
-## Playback flow
+# Playback flow
 
 * Loads module using `require('../assets/audio/...')`, wraps in `Asset.fromModule(module)`
 * Ensures the asset is downloaded via `asset.downloadAsync()` if needed
 * Creates sound via `Audio.Sound.createAsync(source)` and `sound.playAsync()`
 * Unloads the sound on finish (`sound.unloadAsync()` in `setOnPlaybackStatusUpdate`)
 
-## Cleanup
+# Cleanup
 
 * `AudioService.cleanupTemp()` reads cache directory (`Paths.cache.uri` or `FileSystem.cacheDirectory`) and deletes any files matching `rec_...` prefix.
-* Where the app calls it:
-
-  * After successful processing in `index.tsx` (you already call `AudioService.cleanupTemp().catch(console.warn)` after `playResponseAudio`)
+* Called after successful processing in `index.tsx`
