@@ -1,6 +1,7 @@
+import { formatScenarioLabel } from '@/Utils/ScenarioConversion';
 import React from 'react';
 import { StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
-import { Scenario, scenarioLabels } from '../services/VoiceApi';
+import { Scenario } from '../services/VoiceApi';
 
 type Props = {
     onPress: () => void;
@@ -9,7 +10,7 @@ type Props = {
 };
 
 const ScenarioCard = ({ onPress, selectedScenario, value }: Props) => {
-    const { label, emoji } = scenarioLabels[value];
+    const label = formatScenarioLabel(value);
     return (
         <>
             <TouchableWithoutFeedback onPress={onPress} >
@@ -19,10 +20,8 @@ const ScenarioCard = ({ onPress, selectedScenario, value }: Props) => {
                 ]}>
                     <Text style={{
                         fontWeight: selectedScenario === value ? "bold" : "normal",
-                        // fontWeight: "bold",
                         fontSize: 14
                     }}> {label}
-                        {/* {emoji}  */}
                     </Text>
                 </View>
             </TouchableWithoutFeedback>

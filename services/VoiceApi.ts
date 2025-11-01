@@ -7,28 +7,6 @@ export interface VoiceApi {
 
 export type Scenario = "success" | "clarify" | "networkError" | "serverError";
 
-export const scenarioLabels: Record<Scenario, { label: string; emoji: string }> = {
-    success: { label: "Success", emoji: "✅" },
-    clarify: { label: "Clarification", emoji: "💬" },
-    networkError: { label: "Network Error", emoji: "📡" },
-    serverError: { label: "Server Error", emoji: "💥" },
-};
-
-export function formatScenarioLabel(scenario: Scenario): string {
-    switch (scenario) {
-        case "success":
-            return "Success";
-        case "clarify":
-            return "Clarification";
-        case "networkError":
-            return "Network Error";
-        case "serverError":
-            return "Server Error";
-        default:
-            return "Unknown";
-    }
-}
-
 export class StubVoiceApi implements VoiceApi {
     private opts?: { delayMs?: number; scenario?: Scenario };
     private clarified = false;

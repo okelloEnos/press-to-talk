@@ -16,7 +16,7 @@ type Props = {
 };
 
 export default function ErrorBanner({
-    message = "Something went wrong. Please try again.",
+    message = "Oops! Something unexpected happened. Please try again.",
     onRetry,
 }: Props) {
     const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -66,7 +66,7 @@ export default function ErrorBanner({
                 <Ionicons name="close-outline" size={22} color="#fff" style={styles.iconCancel} />
             </TouchableWithoutFeedback>
             <View >
-                <Text style={styles.title}>Error</Text>
+                <Text style={styles.title}>An Issue Occurred</Text>
                 <Text style={styles.message}>{message}</Text>
                 <Spacer height={16} />
                 {onRetry && (
