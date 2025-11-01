@@ -1,16 +1,19 @@
-import ScenarioCard from "@/components/ScenarioCard";
-import Spacer from "@/components/Spacer";
 import { AudioService } from "@/services/AudioService";
 import { Scenario, StubVoiceApi } from "@/services/VoiceApi";
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import React, { useEffect, useRef, useState } from "react";
 import { Alert, Animated, FlatList, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CaptureOverlay from "../components/CaptureOverlay";
-import PTTButton from "../components/PTTButton";
+import ClarificationBanner from "../components/ClarificationBanner";
+import ErrorBanner from "../components/ErrorBanner";
+import PressButton from "../components/PressButton";
+import ScenarioCard from "../components/ScenarioCard";
+import Spacer from "../components/Spacer";
 import TranscriptCard from "../components/TranscriptCard";
 import { ProcessVoiceInput } from "../types";
+
 
 // Initialize services
 const audioService = new AudioService();
@@ -220,25 +223,19 @@ export default function Index() {
         <Spacer height={24} />
       </View>
 
-      {/* CLARIFICATION PROMPT */}
       {uiState === "clarification" && prompt && (
-        <View style={styles.bannerClar}>
-          <Text>{prompt}</Text>
-        </View>
+        <ClarificationBanner prompt={prompt || "Assistant requires clarification"} />
       )}
 
-      {/* ERROR BANNER */}
+
       {uiState === "error" && (
-        <View style={styles.bannerError}>
-          <Text style={{ color: "#fff" }}>{error}</Text>
-          <Text
-            style={styles.retry}
-            onPress={retryError}
-          >
-            Tap to retry
-          </Text>
-        </View>
+        <ErrorBanner
+          message={error || "An unknown error occurred"}
+          onRetry={retryError}
+        />
       )}
+
+
 
       {transcripts.length > 0 && <View style={styles.subTitleContainer}>
         <Text style={styles.subTitle}>Recent transcripts</Text>
@@ -263,23 +260,27 @@ export default function Index() {
       />
 
 
-      {/* FOOTER */}
-      <View style={styles.footer}>
-        <PTTButton
-          onPressIn={startListening}
-          onPressOut={stopListening}
-          onSwipeCancel={handleSwipeCancel}
-          disabled={uiState === "processing" || isBusy}
-          label={
-            uiState === "listening" ? "Recording..." : "Hold to Talk"
-          }
-        />
-      </View>
+      <PressButton
+        panX={panXRef}
+        onPressIn={startListening}
+        onPressOut={stopListening}
+        onSwipeCancel={handleSwipeCancel}
+        disabled={uiState === "processing" || isBusy}
+        label={
+          uiState === "listening" ? "Listening..." : "Press to Talk"
+        }
+      />
 
       {/* LISTENING OVERLAY */}
       {uiState === "listening" && (
-        <CaptureOverlay startTs={listeningStart} slideAnim={panXRef} />
+        <CaptureOverlay
+          startTs={listeningStart}
+          panX={panXRef}
+          cancelThreshold={120}
+        />
       )}
+
+
     </SafeAreaView>
   );
 }
@@ -368,13 +369,38 @@ const styles = StyleSheet.create({
 
   footer: {
     alignItems: "center",
-    paddingVertical: 20,
+    // paddingVertical: 20,
   },
+  // bannerClar: {
+  //   backgroundColor: "#fff3bf",
+  //   padding: 12,
+  //   borderRadius: 8,
+  //   marginVertical: 10,
+  // },
   bannerClar: {
-    backgroundColor: "#fff3bf",
-    padding: 12,
+    backgroundColor: "#e0f2fe",
+    borderLeftWidth: 4,
+    borderLeftColor: "#2563eb",
     borderRadius: 8,
+    padding: 12,
     marginVertical: 10,
+    marginHorizontal: 4,
+  },
+  bannerContent: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  bannerTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#2563eb",
+    marginBottom: 2,
+  },
+  bannerText: {
+    fontSize: 14,
+    color: "#1e293b",
+    lineHeight: 20,
   },
   bannerError: {
     backgroundColor: "#ff6b6b",

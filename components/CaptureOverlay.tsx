@@ -56,9 +56,9 @@ export default function CaptureOverlay({
         );
         loop.start();
 
-        // announce to screen readers that recording started
+        // announce to screen readers that listening started
         AccessibilityInfo.announceForAccessibility(
-            `Recording started. ${formatDuration(Math.floor((Date.now() - startTs) / 1000))} elapsed`
+            `Listening started. ${formatDuration(Math.floor((Date.now() - startTs) / 1000))} elapsed`
         );
 
         return () => {
@@ -101,7 +101,7 @@ export default function CaptureOverlay({
         //   accessibilityRole="status"
         >
             <View style={styles.rowRecord}>
-                <Text style={styles.live}>Recording</Text>
+                <Text style={styles.live}>Listening</Text>
                 <Text style={styles.live}>{formatDuration(secs)}</Text>
             </View>
             <Spacer height={8} />
