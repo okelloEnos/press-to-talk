@@ -9,6 +9,9 @@ export function stubErrorMessage(errorCode?: ErrorCode): string {
         case "SERVER":
             return "Something went wrong on our end. Please try again shortly.";
 
+        case "ERR_AUDIO_PERMISSIONS":
+            return "Microphone permissions are required to use this feature. Please enable them in your device settings.";
+
         default:
             return "Oops! Something unexpected happened. Please try again.";
     }

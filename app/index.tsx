@@ -5,7 +5,7 @@ import { Asset } from "expo-asset";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, Animated, FlatList, StyleSheet, Text, View } from "react-native";
+import { Alert, Animated, FlatList, Linking, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 // import { AnimatedDots } from "../components/AnimatedDots";
 import AnimatedDots from "@/components/AnimatedDots";
@@ -26,231 +26,6 @@ import { ProcessVoiceInput } from "../types";
 const audioService = new AudioService();
 const voiceApi = new StubVoiceApi({ scenario: 'success', delayMs: 1500 });
 const scenarios: Scenario[] = ["success", "clarify", "networkError", "serverError"];
-
-// export default function Index() {
-
-//   const [uiState, setUiState] = useState<"idle" | "listening" | "processing" | "error" | "clarification">("idle");
-//   const [transcripts, setTranscripts] = useState<string[]>([]);
-//   const [prompt, setPrompt] = useState<string | null>(null);
-//   const [error, setError] = useState<string | null>(null);
-//   const [scenario, setScenario] = useState<Scenario>("success");
-//   const [listeningStart, setListeningStart] = useState<number>(0);
-//   const [cancelled, setCancelled] = useState(false);
-//   const [isBusy, setIsBusy] = useState(false);
-
-//   // for cancel swipe animation (shared between button and overlay if needed)
-//   const panXRef = useRef(new Animated.Value(0)).current;
-
-//   useEffect(() => {
-//     voiceApi.setScenario(scenario);
-//     audioService.cleanupTemp();
-//   }, [scenario]);
-
-//   const startListening = async () => {
-//     // guard: don’t allow overlapping recordings
-//     if (isBusy) return;
-//     setIsBusy(true);
-//     setCancelled(false);
-
-//     try {
-//       // request mic permission
-//       const ok = await audioService.requestPermission();
-//       if (!ok) {
-//         Alert.alert(
-//           "Microphone Permission Required",
-//           "Please enable microphone access in settings."
-//         );
-//         return;
-//       }
-
-//       // start recording
-//       await audioService.startRecording();
-//       setListeningStart(Date.now());
-//       setUiState("listening");
-//     } catch (err) {
-//       // console.error("Error starting recording:", err);
-//       Alert.alert("Recording Error", "Unable to start recording.");
-//       setUiState("idle");
-//     } finally {
-//       setIsBusy(false);
-//     }
-//   };
-
-//   const stopListening = async () => {
-//     // guard: ignore if busy or cancelled
-//     if (isBusy) return;
-//     if (cancelled) {
-//       setCancelled(false);
-//       return;
-//     }
-
-//     setIsBusy(true);
-//     setUiState("processing");
-
-//     try {
-//       const { uri, mimeType } = await audioService.stopAndSave();
-//       const input: ProcessVoiceInput = {
-//         audioUri: uri,
-//         mimeType,
-//         clientTs: new Date().toISOString(),
-//       };
-
-//       const res = await voiceApi.processVoice(input);
-
-//       if (res.kind === "clarification") {
-//         setPrompt(res.prompt);
-//         setUiState("clarification");
-//       } else {
-//         setTranscripts((prev) => [res.transcript, ...prev]);
-//         await playResponseAudio(res.audioFile);
-//         setPrompt(null);
-//         setUiState("idle");
-//       }
-//     } catch (err: any) {
-//       const errorCode = err["code"];
-//       console.log("Jackline ahero", errorCode);
-//       if (errorCode === undefined) {
-//         console.error("Processing  error okello:", err);
-
-//         // setError(err.message || "Something went wrong. Please try again.");
-//         setError("Something went wrong. Please try again. Custom error.");
-//         setUiState("error");
-//       }
-//       else {
-//         const customizedMessage = stubErrorMessage(errorCode);
-//         // console.error("Processing error enos:", err);
-//         setError(customizedMessage);
-//         setUiState("error");
-//       }
-//     } finally {
-//       setIsBusy(false);
-//     }
-//   };
-
-//   const handleSwipeCancel = async () => {
-//     // user swiped right while holding
-//     setCancelled(true);
-//     try {
-//       await audioService.cancelRecording();
-//     } catch (err) {
-//       console.warn("Cancel recording error:", err);
-//     } finally {
-//       setUiState("idle");
-//       // small haptic or animation feedback could go here
-//     }
-//   };
-
-//   const playResponseAudio = async (fileIndex: number) => {
-//     try {
-//       const file =
-//         fileIndex === 1
-//           ? require("../assets/audio/audiofile1.mp3")
-//           : require("../assets/audio/audiofile2.mp3");
-//       const { sound } = await Audio.Sound.createAsync(file);
-//       await sound.playAsync();
-//     } catch (err) {
-//       console.warn("Audio playback failed:", err);
-//     }
-//   };
-
-//   const retryError = () => {
-//     setError(null);
-//     setUiState("idle");
-//   };
-
-
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       <View style={styles.header}>
-
-//         <Text style={styles.title}>Press & Talk Demo</Text>
-//         <Spacer height={16} />
-
-//         <View style={styles.scenarioOverview}>
-//           <Spacer height={6} />
-//           <Text style={styles.demoScenarioText}>Testing Scenario :</Text>
-//           <Spacer height={8} />
-//           <View style={styles.grid}>
-//             {scenarios.map((scenarioInstance) => (
-//               <View key={scenarioInstance} style={styles.gridItem}>
-//                 <ScenarioCard
-//                   value={scenarioInstance}
-//                   selectedScenario={scenario}
-//                   onPress={() => setScenario(scenarioInstance)}
-//                 />
-//               </View>
-//             ))}
-//           </View>
-//         </View>
-
-//         <Spacer height={24} />
-//       </View>
-
-//       {uiState === "clarification" && prompt && (
-//         <ClarificationBanner prompt={prompt || "Assistant requires clarification"} />
-//       )}
-
-
-//       {uiState === "error" && (
-//         <ErrorBanner
-//           message={error || "Oops! Something unexpected happened. Please try again."}
-//           onRetry={retryError}
-//         />
-//       )}
-
-//       <>
-//         {(transcripts.length > 0 || uiState === "processing") && <View style={styles.subTitleContainer}>
-//           <Text style={styles.subTitle}>Recent transcripts</Text>
-//           <Spacer height={4} />
-//         </View>}
-
-//         {uiState === "processing" && <Text style={styles.processingText}>
-//           Thinking  <AnimatedDots />
-//         </Text>}
-
-//         <FlatList
-//           data={transcripts}
-//           keyExtractor={(_, i) => i.toString()}
-//           renderItem={({ item }) => <TranscriptCard text={item} />}
-//           contentContainerStyle={
-//             transcripts.length === 0 ? styles.emptyContainer : undefined
-//           }
-//           ListEmptyComponent={
-//             <View style={styles.emptyInner}>
-//               <Ionicons name="mic-outline" size={48} color="#888" style={styles.icon} />
-//               <Text style={styles.emptyTitle}>No transcripts available</Text>
-//               <Text style={styles.emptyHint}>
-//                 Press the button below to start recording your first voice input.
-//               </Text>
-//             </View>
-//           }
-//         />
-//       </>
-
-//       <PressButton
-//         panX={panXRef}
-//         onPressIn={startListening}
-//         onPressOut={stopListening}
-//         onSwipeCancel={handleSwipeCancel}
-//         disabled={uiState === "processing" || isBusy}
-//         label={
-//           uiState === "listening" ? "Listening..." : "Press to Talk"
-//         }
-//       />
-
-//       {/* LISTENING OVERLAY */}
-//       {uiState === "listening" && (
-//         <CaptureOverlay
-//           startTs={listeningStart}
-//           panX={panXRef}
-//           cancelThreshold={120}
-//         />
-//       )}
-
-
-//     </SafeAreaView>
-//   );
-// }
 
 
 export default function Index() {
@@ -283,38 +58,81 @@ export default function Index() {
         await AudioService.setupAudioMode();
       }
     })();
+
+    // Cleanup temp files when scenario changes
+    // AudioService.cleanupTemp().catch(console.warn);
   }, [scenario]);
 
+  // Cleanup on component unmount
+  // useEffect(() => {
+  //   return () => {
+  //     AudioService.cleanupTemp().catch(console.warn);
+  //   };
+  // }, []);
+
   const startListening = async () => {
-    // guard: don’t allow overlapping recordings
+    // guard: don't allow overlapping recordings
     if (isBusy) return;
     setIsBusy(true);
     setCancelled(false);
 
     try {
-      // request mic permission
-      // const ok = await audioService.requestPermission();
-      // if (!ok) {
-      //   Alert.alert(
-      //     "Microphone Permission Required",
-      //     "Please enable microphone access in settings."
-      //   );
-      //   return;
-      // }
+      const permission = await Audio.getPermissionsAsync();
+
+      if (!permission.granted) {
+        const { granted } = await Audio.requestPermissionsAsync();
+
+        if (!granted) {
+          Alert.alert(
+            "Microphone Access Required",
+            "Voice recording needs microphone access. Would you like to enable it in settings?",
+            [
+              { text: "Not Now", style: "cancel" },
+              {
+                text: "Open Settings",
+                onPress: async () => {
+                  await Linking.openSettings();
+                }
+              }
+            ]
+          );
+          setUiState("idle");
+          return;
+        }
+      }
 
       // start recording
-      // await audioService.startRecording();
       await startRecording();
       setListeningStart(Date.now());
       setUiState("listening");
-    } catch (err) {
-      // console.error("Error starting recording:", err);
-      Alert.alert("Recording Error", "Unable to start recording.");
+    } catch (err: any) {
+      console.error("Recording error:", err);
+
+      if (err.code === 'ERR_AUDIO_PERMISSIONS') {
+        Alert.alert(
+          "Microphone Access Required",
+          "Please allow microphone access to record audio.",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Open Settings",
+              onPress: async () => {
+                await Linking.openSettings();
+              }
+            }
+          ]
+        );
+      } else {
+        Alert.alert(
+          "Recording Error",
+          "Unable to start recording. Please try again."
+        );
+      }
       setUiState("idle");
     } finally {
       setIsBusy(false);
     }
-  };
+  }
 
   const stopListening = async () => {
     // guard: ignore if busy or cancelled
@@ -325,15 +143,22 @@ export default function Index() {
     }
 
     setIsBusy(true);
-    setUiState("processing");
 
     try {
-      // const { uri, mimeType } = await audioService.stopAndSave();
+      // Stop recording and get the URI
       const { uri } = await stopRecording();
+
+      if (!uri) {
+        setUiState("idle");
+        return;
+      }
+
+      // Now we know we have a recording, set to processing
+      setUiState("processing");
+
       console.log('Recording saved:', uri);
       const input: ProcessVoiceInput = {
         audioUri: uri,
-        // mimeType,
         mimeType: 'audio/wav',
         clientTs: new Date().toISOString(),
       };
@@ -348,9 +173,13 @@ export default function Index() {
         await playResponseAudio(res.audioFile);
         setPrompt(null);
         setUiState("idle");
+
+        // Cleanup temp files after successful processing
+        AudioService.cleanupTemp().catch(console.warn);
       }
     } catch (err: any) {
       const errorCode = err["code"];
+      if (errorCode === "ERR_AUDIO_PERMISSIONS") return;
       console.log("Jackline ahero", errorCode);
       if (errorCode === undefined) {
         // console.error("Processing  error okello:", err);
