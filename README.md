@@ -1,50 +1,158 @@
-# Welcome to your Expo app 👋
+# Press-to-Talk
+# 1) Prerequisites & run on Android emulator
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Prereqs**
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+* Node.js 18+
+* npm
+* Expo CLI
+* Android Studio
+* Emulator
 
 ```bash
-npm run reset-project
+npm install -g expo-cli
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+* Android Studio + Android SDK + AVD (Android Virtual Device)
 
-## Learn more
+  * Create an AVD (e.g., Pixel 4, API 33) via AVD Manager
+  * Ensure `adb` is on your PATH (Android Studio normally adds it)
 
-To learn more about developing your project with Expo, look at the following resources:
+**Install & run**
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+# clone + install
+git clone https://github.com/okelloEnos/press-to-talk.git
+cd press-to-talk
+npm install
 
-## Join the community
+# start Expo dev server
+npx expo start
+```
 
-Join our community of developers creating universal apps.
+**Open on Android emulator**
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+* Start your AVD from Android Studio and wait for it to boot.
+* In the terminal where Expo is running press `a` → this will open the Expo app in the emulator.
+* OR (managed/bare / dev-client flows) run:
+
+```bash
+npx expo run:android
+```
+
+**Permissions**
+
+* The app will request microphone permission on first record. If permission is denied, go to emulator → Settings → Apps → *Press-to-Talk* → Permissions and enable microphone.
+
+---
+
+# 2) Architecture
+
+**Important files / folders (your repo)**
+
+```
+app/
+  index.tsx
+assets/
+  audio/
+    audiofile1.mp3
+    audiofile2.mp3
+components/
+  ClarificationBanner.tsx
+  ErrorBanner.tsx
+  PressButton.tsx
+  ScenarioCard.tsx
+services/
+  AudioService.ts
+  VoiceApi.ts         
+Utils/
+  ErrorMessage.tsx
+  ScenarioConversion.tsx
+```
+
+## `AudioService` & `VoiceApi` interaction
+
+1. User presses record (`PressButton`) → `useAudioRecorderService().startRecording()`
+2. User stops → `useAudioRecorderService().stopRecording()` → returns `{ uri, mimeType }` (the audio is saved to cache using `AudioService.saveRecordingToCache`)
+3. UI sets `uiState = "processing"` and calls `voiceApi.processVoice({ audioUri: uri, ... })`
+4. `StubVoiceApi.processVoice()` simulates backend and returns either:
+
+   * `{ kind: "ok", transcript, audioFile }` → UI plays audio via `playResponseAudio` and app goes to `idle`
+   * `{ kind: "clarification", prompt }` → UI shows `ClarificationBanner` and `uiState = "clarification"`
+   * Throws an error object with `{ kind: "error", code: "NETWORK" | "SERVER", message }` → UI maps this with `stubErrorMessage()` and `uiState = "error"`
+5. After successful processing, the app calls `AudioService.cleanupTemp()` to remove temporary recordings from cache.
+
+
+# 3) App states (list + transitions)
+
+```ts
+"idle" | "listening" | "processing" | "error" | "clarification"
+```
+
+**Simple diagram state flow**
+
+```
+Idle
+ └─(press)→ Listening
+      └─(stop)→ Processing
+           ├─(ok: returns audio)→ Playing → Idle
+           ├─(ok: clarification)→ Clarification → Idle
+           └─(error: network)→ ErrorNetwork → Idle
+           └─(error: server)→ ErrorServer → Idle
+```
+
+---
+
+# 4) How to toggle scenarios
+
+Edit the voiceApi construction in `app/index.tsx`:
+
+```ts
+// src/app/index.tsx (top)
+const voiceApi = new StubVoiceApi({ scenario: 'success', delayMs: 1500 });
+```
+
+Change `scenario` to one of: `"success" | "clarify" | "networkError" | "serverError"`. Restart app to apply.
+
+---
+
+# 5) Audio file lifecycle
+
+## Where files are written
+
+* The code uses Expo file-system `Paths.cache`
+
+* Example destination the service uses when copying:
+
+  ```
+  ${Paths.cache?.uri}/rec_<timestamp>.m4a
+  ```
+* Bundled response audio assets live under:
+
+  ```
+  assets/audio/audiofile1.mp3
+  assets/audio/audiofile2.mp3
+  ```
+
+  `playResponseAudio` uses `Asset.fromModule(require('../assets/audio/audiofile1.mp3'))` to load/play.
+
+## Save-recording flow
+
+1. `stopRecording()` returns a recording `uri` (sometimes `content://` on Android).
+2. If `content://` (Android) → use the content URI directly.
+3. For file URIs → wait `FileSystem.getInfoAsync(uri)` until the file exists (with exponential backoff).
+4. Copy it to cache: `rec_<timestamp>.m4a` and return `{ uri: dest, mimeType: 'audio/m4a' }`.
+
+## Playback flow
+
+* Loads module using `require('../assets/audio/...')`, wraps in `Asset.fromModule(module)`
+* Ensures the asset is downloaded via `asset.downloadAsync()` if needed
+* Creates sound via `Audio.Sound.createAsync(source)` and `sound.playAsync()`
+* Unloads the sound on finish (`sound.unloadAsync()` in `setOnPlaybackStatusUpdate`)
+
+## Cleanup
+
+* `AudioService.cleanupTemp()` reads cache directory (`Paths.cache.uri` or `FileSystem.cacheDirectory`) and deletes any files matching `rec_...` prefix.
+* Where the app calls it:
+
+  * After successful processing in `index.tsx` (you already call `AudioService.cleanupTemp().catch(console.warn)` after `playResponseAudio`)
