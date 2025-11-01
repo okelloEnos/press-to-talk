@@ -353,10 +353,10 @@ export default function Index() {
       const errorCode = err["code"];
       console.log("Jackline ahero", errorCode);
       if (errorCode === undefined) {
-        console.error("Processing  error okello:", err);
+        // console.error("Processing  error okello:", err);
 
         // setError(err.message || "Something went wrong. Please try again.");
-        setError("Something went wrong. Please try again. Custom error.");
+        setError("Something unexpected went wrong. Please try again.");
         setUiState("error");
       }
       else {
@@ -484,15 +484,17 @@ export default function Index() {
         }
       });
     } catch (err) {
-      console.error("[Audio] Playback failed with error:", err);
+      // force
+      // console.error("[Audio] Playback failed with error:", err);
 
       // Try to get more error context
       if (err instanceof Error) {
-        console.error("[Audio] Error details:", {
-          name: err.name,
-          message: err.message,
-          stack: err.stack,
-        });
+        // force
+        // console.error("[Audio] Error details:", {
+        //   name: err.name,
+        //   message: err.message,
+        //   stack: err.stack,
+        // });
       }
 
       // Alert user of failure
